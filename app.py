@@ -1,7 +1,7 @@
 import requests
 import os
 from datetime import datetime
-from flask import Flask
+from flask import Flask, request
 import random
 
 app = Flask(__name__)
@@ -9,14 +9,13 @@ app = Flask(__name__)
 class RealTimeNewsAggregator:
     def __init__(self):
         self.api_keys = {
-            'gnews': os.environ.get('GNEWS_API_KEY', '1e84b3d90c7c7c6e59e60b2e89c8c9b0'),  # 示例密钥，建议注册自己的
+            'gnews': os.environ.get('GNEWS_API_KEY', '1e84b3d90c7c7c6e59e60b2e89c8c9b0'),
             'currents': os.environ.get('CURRENTS_API_KEY', '')
         }
     
     def fetch_realtime_crypto_news(self):
         """获取实时加密货币新闻"""
         try:
-            # 使用CoinGecko的实时新闻API
             url = "https://api.coingecko.com/api/v3/news"
             response = requests.get(url, timeout=10)
             if response.status_code == 200:
@@ -39,7 +38,6 @@ class RealTimeNewsAggregator:
     def fetch_gnews(self):
         """使用GNews API获取实时财经新闻"""
         try:
-            # 注意：需要注册GNews获取免费API密钥
             api_key = self.api_keys['gnews']
             url = f"https://gnews.io/api/v4/search?q=bitcoin+crypto+stock+market&lang=zh&country=cn&max=10&apikey={api_key}"
             
@@ -48,7 +46,6 @@ class RealTimeNewsAggregator:
                 data = response.json()
                 news_items = []
                 for article in data.get('articles', [])[:8]:
-                    # 智能分类
                     title = article.get('title', '')
                     news_type = 'us_stock'
                     if any(word in title.lower() for word in ['比特币', '以太坊', '加密货币', '区块链']):
@@ -171,7 +168,7 @@ class RealTimeNewsAggregator:
 
 @app.route('/')
 def home():
-    """主页面"""
+    """主页面 - 桌面版"""
     try:
         aggregator = RealTimeNewsAggregator()
         news_data = aggregator.get_all_realtime_news()
@@ -262,6 +259,282 @@ def home():
     </div>
     <p>📰 正在获取最新实时新闻...</p>
     <p>🔧 系统维护中，请稍后刷新</p>
+</body>
+</html>
+        """
+
+@app.route('/mobile')
+def mobile_news():
+    """手机版流动新闻"""
+    try:
+        aggregator = RealTimeNewsAggregator()
+        news_data = aggregator.get_all_realtime_news()
+        
+        # 获取比特币价格
+        btc_price, btc_change = aggregator.get_bitcoin_price()
+        
+        # 生成新闻项目HTML
+        news_items = ""
+        for news in news_data:
+            news_type = news.get('type', 'default')
+            icon = news.get('icon', '📰')
+            title = news['title']
+            source = news['source']
+            display_time = news.get('display_time', '实时')
+            
+            news_items += f"""
+            <div class="news-item" data-type="{news_type}">
+                <div class="news-icon">{icon}</div>
+                <div class="news-content">
+                    <div class="news-title">{title}</div>
+                    <div class="news-meta">
+                        <span class="news-source">{source}</span>
+                        <span class="news-time">{display_time}</span>
+                    </div>
+                </div>
+            </div>
+            """
+        
+        html = f"""
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>实时财经新闻</title>
+    <style>
+        * {{
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }}
+        
+        body {{
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: #0f1419;
+            color: #ffffff;
+            overflow: hidden;
+            height: 100vh;
+        }}
+        
+        .mobile-news-container {{
+            height: 10vh;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border-bottom: 1px solid #2a3a5a;
+            overflow: hidden;
+            position: relative;
+        }}
+        
+        .news-header {{
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border-bottom: 1px solid #2a3a5a;
+        }}
+        
+        .news-title-bar {{
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }}
+        
+        .live-indicator {{
+            background: #e74c3c;
+            color: white;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-weight: bold;
+            animation: pulse 1.5s infinite;
+        }}
+        
+        @keyframes pulse {{
+            0% {{ opacity: 1; }}
+            50% {{ opacity: 0.7; }}
+            100% {{ opacity: 1; }}
+        }}
+        
+        .bitcoin-price {{
+            font-size: 12px;
+            color: #4ecdc4;
+            font-weight: bold;
+        }}
+        
+        .news-scroll-container {{
+            height: calc(10vh - 40px);
+            overflow: hidden;
+            position: relative;
+        }}
+        
+        .news-scroll {{
+            display: flex;
+            flex-direction: column;
+            animation: scroll 30s linear infinite;
+        }}
+        
+        .news-item {{
+            display: flex;
+            align-items: center;
+            padding: 10px 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            min-height: 60px;
+            transition: background 0.3s;
+        }}
+        
+        .news-item:hover {{
+            background: rgba(255, 255, 255, 0.05);
+        }}
+        
+        .news-icon {{
+            font-size: 18px;
+            margin-right: 10px;
+            flex-shrink: 0;
+        }}
+        
+        .news-content {{
+            flex: 1;
+            overflow: hidden;
+        }}
+        
+        .news-title {{
+            font-size: 13px;
+            line-height: 1.3;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }}
+        
+        .news-meta {{
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+            color: #8899a6;
+        }}
+        
+        .news-source {{
+            background: rgba(78, 205, 196, 0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }}
+        
+        .news-time {{
+            color: #4ecdc4;
+        }}
+        
+        /* 新闻类型颜色 */
+        .news-item[data-type="crypto"] .news-icon {{
+            color: #4ecdc4;
+        }}
+        
+        .news-item[data-type="us_stock"] .news-icon {{
+            color: #45b7d1;
+        }}
+        
+        .news-item[data-type="china"] .news-icon {{
+            color: #96ceb4;
+        }}
+        
+        @keyframes scroll {{
+            0% {{
+                transform: translateY(0);
+            }}
+            100% {{
+                transform: translateY(calc(-100% + 10vh - 40px));
+            }}
+        }}
+        
+        /* 暂停动画当悬停 */
+        .news-scroll-container:hover .news-scroll {{
+            animation-play-state: paused;
+        }}
+        
+        /* 响应式调整 */
+        @media (max-width: 480px) {{
+            .news-title {{
+                font-size: 12px;
+            }}
+            
+            .bitcoin-price {{
+                font-size: 10px;
+            }}
+        }}
+    </style>
+</head>
+<body>
+    <div class="mobile-news-container">
+        <div class="news-header">
+            <div class="news-title-bar">
+                <span>📰 实时财经</span>
+                <span class="live-indicator">LIVE</span>
+            </div>
+            <div class="bitcoin-price">
+                ₿ ${btc_price} | {btc_change}%
+            </div>
+        </div>
+        
+        <div class="news-scroll-container">
+            <div class="news-scroll">
+                {news_items}
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 动态调整滚动速度
+        function adjustScrollSpeed() {{
+            const scrollContainer = document.querySelector('.news-scroll');
+            const itemCount = document.querySelectorAll('.news-item').length;
+            const duration = Math.max(20, itemCount * 3); // 根据新闻数量调整滚动速度
+            
+            scrollContainer.style.animationDuration = `${duration}s`;
+        }}
+        
+        // 页面加载完成后调整滚动速度
+        window.addEventListener('load', adjustScrollSpeed);
+        
+        // 每3分钟刷新页面获取最新新闻
+        setTimeout(() => {{
+            window.location.reload();
+        }}, 180000);
+    </script>
+</body>
+</html>
+        """
+        
+        return html
+        
+    except Exception as e:
+        return f"""
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>实时财经新闻</title>
+    <style>
+        body {{
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f1419;
+            color: white;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }}
+        .error-container {{
+            padding: 20px;
+        }}
+    </style>
+</head>
+<body>
+    <div class="error-container">
+        <h2>📰 财经新闻</h2>
+        <p>正在获取最新新闻...</p>
+    </div>
 </body>
 </html>
         """
