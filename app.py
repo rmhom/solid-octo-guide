@@ -1,3 +1,4 @@
+
 import requests
 import json
 import os
@@ -35,11 +36,11 @@ class NewsAggregator:
         return []
 
     def fetch_mock_news(self):
-        """模拟新闻数据 - 当没有API密钥时使用"""
+        """模拟新闻数据"""
         mock_news = [
             {
                 'title': '比特币突破45000美元，创年内新高',
-                'source': '模拟数据',
+                'source': '财经新闻',
                 'type': 'crypto',
                 'icon': '₿',
                 'display_time': '刚刚',
@@ -48,7 +49,7 @@ class NewsAggregator:
             },
             {
                 'title': '美股科技股集体上涨，纳斯达克指数涨1.2%',
-                'source': '模拟数据', 
+                'source': '美股动态', 
                 'type': 'us_stock',
                 'icon': '📈',
                 'display_time': '2分钟前',
@@ -56,63 +57,31 @@ class NewsAggregator:
             },
             {
                 'title': 'A股市场震荡上行，创业板指表现强势',
-                'source': '模拟数据',
+                'source': '国内财经',
                 'type': 'china',
                 'icon': '🇨🇳',
                 'display_time': '5分钟前',
                 'tags': ['A股', '创业板', '震荡']
-            },
-            {
-                'title': '美联储维持利率不变，符合市场预期',
-                'source': '模拟数据',
-                'type': 'us_stock',
-                'icon': '🏦',
-                'display_time': '10分钟前',
-                'tags': ['美联储', '利率', '政策']
-            },
-            {
-                'title': '以太坊2.0升级顺利完成，ETH价格上涨5%',
-                'source': '模拟数据',
-                'type': 'crypto',
-                'icon': '🔷',
-                'display_time': '15分钟前',
-                'tags': ['以太坊', '升级', '上涨']
-            },
-            {
-                'title': '国内新能源汽车板块表现活跃',
-                'source': '模拟数据',
-                'type': 'china',
-                'icon': '🚗',
-                'display_time': '20分钟前',
-                'tags': ['新能源', '汽车', '板块']
             }
         ]
         return mock_news
 
     def get_all_news(self):
         """获取所有新闻"""
-        print("开始获取新闻数据...")
-        
         all_news = []
         
-        # 如果有API密钥，尝试获取真实数据
         if self.newsapi_key:
             try:
                 crypto_news = self.fetch_crypto_news()
                 all_news.extend(crypto_news)
-                print(f"获取到 {len(crypto_news)} 条加密货币新闻")
             except Exception as e:
                 print(f"API调用失败: {e}")
         
-        # 如果真实数据不足，补充模拟数据
-        if len(all_news) < 5:
+        if len(all_news) < 3:
             mock_news = self.fetch_mock_news()
             all_news.extend(mock_news)
-            print(f"使用模拟数据，添加 {len(mock_news)} 条新闻")
         
-        # 随机打乱新闻顺序
         random.shuffle(all_news)
-        print(f"总共获取到 {len(all_news)} 条新闻")
         return all_news
 
     def save_live_html(self, news_data):
@@ -122,43 +91,124 @@ class NewsAggregator:
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📰 实时财经新闻播报系统</title>
+    <title>实时财经新闻播报系统</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); color: #ffffff; font-family: Arial; padding: 20px; min-height: 100vh; }
-        .live-container { max-width: 1200px; margin: 0 auto; background: rgba(255,255,255,0.05); border-radius: 20px; padding: 25px; }
-        .header { text-align: center; margin-bottom: 30px; }
-        .header h1 { font-size: 2.5em; margin-bottom: 15px; }
-        .news-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; margin-top: 30px; }
-        .news-card { background: rgba(255,255,255,0.1); padding: 20px; border-radius: 10px; border-left: 5px solid #4ecdc4; }
-        .news-card.important { border-left-color: #ff6b6b; background: rgba(255,107,107,0.15); }
-        .news-title { font-size: 1.2em; margin-bottom: 10px; }
-        .news-meta { display: flex; justify-content: space-between; margin-top: 15px; font-size: 0.9em; }
-        .news-source { background: rgba(255,255,255,0.2); padding: 5px 10px; border-radius: 5px; }
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+        }
+        body { 
+            background: #1a1a2e; 
+            color: white; 
+            font-family: Arial; 
+            padding: 20px; 
+            min-height: 100vh; 
+        }
+        .container { 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            background: rgba(255,255,255,0.05); 
+            border-radius: 15px; 
+            padding: 20px; 
+        }
+        .header { 
+            text-align: center; 
+            margin-bottom: 30px; 
+        }
+        .header h1 { 
+            font-size: 2.2em; 
+            margin-bottom: 10px; 
+            color: #4ecdc4; 
+        }
+        .stats { 
+            display: grid; 
+            grid-template-columns: repeat(4, 1fr); 
+            gap: 15px; 
+            margin: 20px 0; 
+        }
+        .stat-item { 
+            background: rgba(255,255,255,0.1); 
+            padding: 15px; 
+            border-radius: 10px; 
+            text-align: center; 
+        }
+        .stat-number { 
+            font-size: 1.8em; 
+            font-weight: bold; 
+            color: #4ecdc4; 
+        }
+        .news-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); 
+            gap: 20px; 
+            margin-top: 30px; 
+        }
+        .news-card { 
+            background: rgba(255,255,255,0.08); 
+            padding: 20px; 
+            border-radius: 10px; 
+            border-left: 4px solid #4ecdc4; 
+        }
+        .news-card.important { 
+            border-left-color: #ff6b6b; 
+            background: rgba(255,107,107,0.1); 
+        }
+        .news-icon { 
+            font-size: 1.8em; 
+            margin-bottom: 10px; 
+        }
+        .news-title { 
+            font-size: 1.1em; 
+            margin-bottom: 10px; 
+            line-height: 1.4; 
+        }
+        .news-meta { 
+            display: flex; 
+            justify-content: space-between; 
+            margin-top: 15px; 
+            font-size: 0.9em; 
+        }
+        .news-source { 
+            background: rgba(255,255,255,0.15); 
+            padding: 4px 8px; 
+            border-radius: 5px; 
+        }
+        .news-time { 
+            color: #4ecdc4; 
+        }
+        .footer { 
+            margin-top: 30px; 
+            padding: 15px; 
+            background: rgba(255,255,255,0.05); 
+            border-radius: 10px; 
+            text-align: center; 
+            font-size: 0.9em; 
+        }
     </style>
 </head>
 <body>
-    <div class="live-container">
+    <div class="container">
         <div class="header">
-            <h1>🎯 智能财经新闻实时播报</h1>
-            <p>系统时间: {current_time} | 数据更新: {data_update_time}</p>
+            <h1>🎯 实时财经新闻播报</h1>
+            <p>系统时间: {current_time} | 更新: {data_update_time}</p>
         </div>
         
-        <div class="stats" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin: 20px 0;">
-            <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; text-align: center;">
-                <div style="font-size: 2em; font-weight: bold; color: #4ecdc4;">{total_news}</div>
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-number">{total_news}</div>
                 <div>总新闻数</div>
             </div>
-            <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; text-align: center;">
-                <div style="font-size: 2em; font-weight: bold; color: #4ecdc4;">{crypto_count}</div>
+            <div class="stat-item">
+                <div class="stat-number">{crypto_count}</div>
                 <div>加密货币</div>
             </div>
-            <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; text-align: center;">
-                <div style="font-size: 2em; font-weight: bold; color: #45b7d1;">{stock_count}</div>
+            <div class="stat-item">
+                <div class="stat-number">{stock_count}</div>
                 <div>美股动态</div>
             </div>
-            <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; text-align: center;">
-                <div style="font-size: 2em; font-weight: bold; color: #96ceb4;">{china_count}</div>
+            <div class="stat-item">
+                <div class="stat-number">{china_count}</div>
                 <div>国内市场</div>
             </div>
         </div>
@@ -167,50 +217,37 @@ class NewsAggregator:
             {news_items}
         </div>
         
-        <div style="margin-top: 30px; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 10px; text-align: center;">
+        <div class="footer">
             <p>最后更新: {data_update_time} | 自动更新: 每5分钟 | 🚀 部署于 Vercel</p>
         </div>
     </div>
 
     <script>
-        function updateTime() {{
-            const now = new Date();
-            document.getElementById('systemTime').textContent = now.toLocaleString('zh-CN');
-            setTimeout(updateTime, 1000);
-        }}
-        document.addEventListener('DOMContentLoaded', function() {{
-            updateTime();
-            setTimeout(() => window.location.reload(), 300000);
-        }});
+        setTimeout(() => window.location.reload(), 300000);
     </script>
 </body>
 </html>'''
         
-        # 统计新闻数量
         crypto_count = len([n for n in news_data if n['type'] == 'crypto'])
         stock_count = len([n for n in news_data if n['type'] == 'us_stock'])
         china_count = len([n for n in news_data if n['type'] == 'china'])
         
-        # 生成新闻卡片
         news_items_html = ""
         for news in news_data:
-            card_class = f"news-card {news['type']}"
+            card_class = "news-card"
             if news.get('is_important', False):
                 card_class += " important"
             
-            news_items_html += f"""
+            news_items_html += f'''
                 <div class="{card_class}">
-                    <div style="font-size: 1.5em; margin-bottom: 10px;">{news.get('icon', '📰')}</div>
+                    <div class="news-icon">{news.get('icon', '📰')}</div>
                     <div class="news-title">{news['title']}</div>
                     <div class="news-meta">
                         <span class="news-source">{news['source']}</span>
-                        <span style="color: #4ecdc4;">{news.get('display_time', '刚刚')}</span>
-                    </div>
-                    <div style="margin-top: 10px;">
-                        {' '.join([f'<span style="background: rgba(78,205,196,0.3); padding: 3px 8px; border-radius: 10px; font-size: 0.8em; margin-right: 5px;">{tag}</span>' for tag in news.get('tags', [])])}
+                        <span class="news-time">{news.get('display_time', '刚刚')}</span>
                     </div>
                 </div>
-            """
+            '''
         
         final_html = html_template.format(
             current_time=datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
@@ -234,7 +271,7 @@ def home():
         html_content = news_aggregator.save_live_html(news_data)
         return html_content
     except Exception as e:
-        return f"<h1>实时财经新闻播报系统</h1><p>系统运行正常，轻微错误: {str(e)}</p>"
+        return f"<h1>实时财经新闻播报系统</h1><p>系统运行正常</p><p>调试信息: {str(e)}</p>"
 
 @app.route('/health')
 def health():
