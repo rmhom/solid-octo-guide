@@ -62,7 +62,7 @@ class SmartNewsAggregator:
         """GNews API - 备用新闻源1"""
         try:
             api_key = self.api_sources['gnews']['key']
-            if not api_key or api_key.startswith('1e84b3d90c7c7c6e59e60b2e89c8c9b0'):
+            if not api_key or api_key.startswith('2ab4ed069ec648bca4d8669e65e56f7a'):
                 print("⏭️  GNews API密钥未设置，跳过")
                 return []
                 
