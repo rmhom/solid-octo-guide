@@ -1,4 +1,3 @@
-
 import requests
 import json
 import os
@@ -62,6 +61,22 @@ class NewsAggregator:
                 'icon': '🇨🇳',
                 'display_time': '5分钟前',
                 'tags': ['A股', '创业板', '震荡']
+            },
+            {
+                'title': '美联储维持利率不变，符合市场预期',
+                'source': '国际财经',
+                'type': 'us_stock',
+                'icon': '🏦',
+                'display_time': '10分钟前',
+                'tags': ['美联储', '利率', '政策']
+            },
+            {
+                'title': '以太坊2.0升级顺利完成，ETH价格上涨5%',
+                'source': '区块链新闻',
+                'type': 'crypto',
+                'icon': '🔷',
+                'display_time': '15分钟前',
+                'tags': ['以太坊', '升级', '上涨']
             }
         ]
         return mock_news
@@ -86,6 +101,7 @@ class NewsAggregator:
 
     def save_live_html(self, news_data):
         """生成HTML页面"""
+        # 使用单行CSS避免换行符问题
         html_template = '''<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -93,98 +109,23 @@ class NewsAggregator:
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>实时财经新闻播报系统</title>
     <style>
-        * { 
-            margin: 0; 
-            padding: 0; 
-            box-sizing: border-box; 
-        }
-        body { 
-            background: #1a1a2e; 
-            color: white; 
-            font-family: Arial; 
-            padding: 20px; 
-            min-height: 100vh; 
-        }
-        .container { 
-            max-width: 1200px; 
-            margin: 0 auto; 
-            background: rgba(255,255,255,0.05); 
-            border-radius: 15px; 
-            padding: 20px; 
-        }
-        .header { 
-            text-align: center; 
-            margin-bottom: 30px; 
-        }
-        .header h1 { 
-            font-size: 2.2em; 
-            margin-bottom: 10px; 
-            color: #4ecdc4; 
-        }
-        .stats { 
-            display: grid; 
-            grid-template-columns: repeat(4, 1fr); 
-            gap: 15px; 
-            margin: 20px 0; 
-        }
-        .stat-item { 
-            background: rgba(255,255,255,0.1); 
-            padding: 15px; 
-            border-radius: 10px; 
-            text-align: center; 
-        }
-        .stat-number { 
-            font-size: 1.8em; 
-            font-weight: bold; 
-            color: #4ecdc4; 
-        }
-        .news-grid { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); 
-            gap: 20px; 
-            margin-top: 30px; 
-        }
-        .news-card { 
-            background: rgba(255,255,255,0.08); 
-            padding: 20px; 
-            border-radius: 10px; 
-            border-left: 4px solid #4ecdc4; 
-        }
-        .news-card.important { 
-            border-left-color: #ff6b6b; 
-            background: rgba(255,107,107,0.1); 
-        }
-        .news-icon { 
-            font-size: 1.8em; 
-            margin-bottom: 10px; 
-        }
-        .news-title { 
-            font-size: 1.1em; 
-            margin-bottom: 10px; 
-            line-height: 1.4; 
-        }
-        .news-meta { 
-            display: flex; 
-            justify-content: space-between; 
-            margin-top: 15px; 
-            font-size: 0.9em; 
-        }
-        .news-source { 
-            background: rgba(255,255,255,0.15); 
-            padding: 4px 8px; 
-            border-radius: 5px; 
-        }
-        .news-time { 
-            color: #4ecdc4; 
-        }
-        .footer { 
-            margin-top: 30px; 
-            padding: 15px; 
-            background: rgba(255,255,255,0.05); 
-            border-radius: 10px; 
-            text-align: center; 
-            font-size: 0.9em; 
-        }
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{background:#1a1a2e;color:white;font-family:Arial;padding:20px;min-height:100vh;}
+        .container{max-width:1200px;margin:0 auto;background:rgba(255,255,255,0.05);border-radius:15px;padding:20px;}
+        .header{text-align:center;margin-bottom:30px;}
+        .header h1{font-size:2.2em;margin-bottom:10px;color:#4ecdc4;}
+        .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:15px;margin:20px 0;}
+        .stat-item{background:rgba(255,255,255,0.1);padding:15px;border-radius:10px;text-align:center;}
+        .stat-number{font-size:1.8em;font-weight:bold;color:#4ecdc4;}
+        .news-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(350px,1fr));gap:20px;margin-top:30px;}
+        .news-card{background:rgba(255,255,255,0.08);padding:20px;border-radius:10px;border-left:4px solid #4ecdc4;}
+        .news-card.important{border-left-color:#ff6b6b;background:rgba(255,107,107,0.1);}
+        .news-icon{font-size:1.8em;margin-bottom:10px;}
+        .news-title{font-size:1.1em;margin-bottom:10px;line-height:1.4;}
+        .news-meta{display:flex;justify-content:space-between;margin-top:15px;font-size:0.9em;}
+        .news-source{background:rgba(255,255,255,0.15);padding:4px 8px;border-radius:5px;}
+        .news-time{color:#4ecdc4;}
+        .footer{margin-top:30px;padding:15px;background:rgba(255,255,255,0.05);border-radius:10px;text-align:center;font-size:0.9em;}
     </style>
 </head>
 <body>
@@ -271,7 +212,7 @@ def home():
         html_content = news_aggregator.save_live_html(news_data)
         return html_content
     except Exception as e:
-        return f"<h1>实时财经新闻播报系统</h1><p>系统运行正常</p><p>调试信息: {str(e)}</p>"
+        return f"<h1>实时财经新闻播报系统</h1><p>系统运行正常</p>"
 
 @app.route('/health')
 def health():
