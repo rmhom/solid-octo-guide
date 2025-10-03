@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -122,7 +123,7 @@
             text-shadow: 0 0 20px rgba(78, 205, 196, 0.3);
         }
         
-        /* 滚动新闻区域 */
+        /* 改进的滚动新闻区域 - 停顿式滚动 */
         .scroll-container {
             height: 400px;
             overflow: hidden;
@@ -136,7 +137,6 @@
         .scroll-content {
             position: absolute;
             width: 100%;
-            animation: scrollUp 30s linear infinite;
         }
         
         .news-card {
@@ -149,6 +149,7 @@
             position: relative;
             overflow: hidden;
             border: 1px solid rgba(255, 255, 255, 0.1);
+            animation: fadeInUp 0.8s ease-out;
         }
         
         .news-card::before {
@@ -164,12 +165,6 @@
         
         .news-card:hover::before {
             left: 100%;
-        }
-        
-        .news-card:hover {
-            transform: translateY(-5px) scale(1.02);
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.06));
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
         }
         
         .news-card.crypto {
@@ -266,12 +261,30 @@
         }
         
         /* 动画效果 */
-        @keyframes scrollUp {
+        @keyframes scrollWithPause {
             0% {
-                transform: translateY(100%);
+                transform: translateY(0);
+            }
+            10% {
+                transform: translateY(0);
+            }
+            30% {
+                transform: translateY(-100%);
+            }
+            40% {
+                transform: translateY(-100%);
+            }
+            60% {
+                transform: translateY(-200%);
+            }
+            70% {
+                transform: translateY(-200%);
+            }
+            90% {
+                transform: translateY(-300%);
             }
             100% {
-                transform: translateY(-100%);
+                transform: translateY(-300%);
             }
         }
         
@@ -395,7 +408,7 @@
         <div class="live-container">
             <div class="header">
                 <h1>🎯 实时财经新闻播报</h1>
-                <p>直播平台专用 | 滚动显示</p>
+                <p>直播平台专用 | 智能停顿滚动</p>
             </div>
             
             <div class="time-info">
@@ -414,11 +427,11 @@
             
             <div class="stats-grid">
                 <div class="stat-card">
-                    <div class="stat-number" id="totalNews">6</div>
+                    <div class="stat-number" id="totalNews">8</div>
                     <div class="stat-label">总新闻数</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-number" id="cryptoCount">3</div>
+                    <div class="stat-number" id="cryptoCount">5</div>
                     <div class="stat-label">加密货币</div>
                 </div>
                 <div class="stat-card">
@@ -431,7 +444,7 @@
                 </div>
             </div>
             
-            <!-- 滚动新闻区域 -->
+            <!-- 改进的滚动新闻区域 -->
             <div class="scroll-container">
                 <div class="scroll-content" id="scrollContent">
                     <!-- 新闻内容由JavaScript动态生成 -->
@@ -439,7 +452,7 @@
             </div>
             
             <div class="footer">
-                <p>🚀 实时滚动播报 | 自动更新 | 直播平台专用</p>
+                <p>🚀 智能停顿滚动 | 每项显示6秒 | 直播平台专用</p>
                 <p style="margin-top: 10px; font-size: 0.9em; opacity: 0.8;">
                     最后更新: <span id="lastUpdateTime">加载中...</span> | 下次刷新: <span id="nextRefresh">3:00</span>
                 </p>
@@ -483,70 +496,51 @@
                 display_time: '实时',
                 tags: ['美联储', '政策', '机构'],
                 important: true
-            },
-            {
-                title: '🇨🇳 亚洲市场数字货币相关股票普涨，A股区块链概念走强',
-                source: '区域行情',
-                type: 'china',
-                icon: '🔴',
-                display_time: '实时',
-                tags: ['A股', '区块链', '概念股']
-            },
-            {
-                title: '🌍 全球机构投资者持续关注加密货币，配置需求增加',
-                source: '机构动态',
-                type: 'us_stock',
-                icon: '🏛️',
-                display_time: '实时',
-                tags: ['机构', '配置', '全球']
-            },
-            {
-                title: '⚡ 去中心化交易所交易量创新高，市场活跃度提升',
-                source: 'DeFi报告',
-                type: 'crypto',
-                icon: '🔄',
-                display_time: '实时',
-                tags: ['DEX', '交易量', '创新高']
-            },
-            {
-                title: '💰 稳定币供应量持续增长，市场流动性充裕',
-                source: '流动性分析',
-                type: 'crypto',
-                icon: '💳',
-                display_time: '实时',
-                tags: ['稳定币', '流动性', '供应']
             }
         ];
 
-        // 初始化滚动新闻
-        function initScrollNews() {
+        // 智能停顿滚动系统
+        function initSmartScroll() {
             const scrollContent = document.getElementById('scrollContent');
+            let currentIndex = 0;
             
-            // 复制新闻数据以创建连续滚动效果
-            const extendedNews = [...newsData, ...newsData];
-            
-            scrollContent.innerHTML = extendedNews.map((news, index) => {
-                const cardClass = `news-card ${news.type} ${news.important ? 'important' : ''}`;
-                const tagsHtml = news.tags ? news.tags.map(tag => 
-                    `<span class="news-tag">${tag}</span>`
-                ).join('') : '';
+            function renderCurrentNews() {
+                scrollContent.innerHTML = '';
                 
-                return `
-                    <div class="${cardClass}" style="animation-delay: ${index * 0.1}s">
-                        <div class="news-header">
-                            <div class="news-icon">${news.icon}</div>
+                // 只显示当前新闻项
+                const currentNews = newsData[currentIndex];
+                if (currentNews) {
+                    const cardClass = `news-card ${currentNews.type} ${currentNews.important ? 'important' : ''}`;
+                    const tagsHtml = currentNews.tags ? currentNews.tags.map(tag => 
+                        `<span class="news-tag">${tag}</span>`
+                    ).join('') : '';
+                    
+                    scrollContent.innerHTML = `
+                        <div class="${cardClass}">
+                            <div class="news-header">
+                                <div class="news-icon">${currentNews.icon}</div>
+                            </div>
+                            <div class="news-title">${currentNews.title}</div>
+                            <div class="news-meta">
+                                <span class="news-source">${currentNews.source}</span>
+                                <span class="news-time">${currentNews.display_time} <span class="live-badge">LIVE</span></span>
+                            </div>
+                            <div class="news-tags">
+                                ${tagsHtml}
+                            </div>
                         </div>
-                        <div class="news-title">${news.title}</div>
-                        <div class="news-meta">
-                            <span class="news-source">${news.source}</span>
-                            <span class="news-time">${news.display_time} <span class="live-badge">LIVE</span></span>
-                        </div>
-                        <div class="news-tags">
-                            ${tagsHtml}
-                        </div>
-                    </div>
-                `;
-            }).join('');
+                    `;
+                }
+            }
+            
+            // 初始渲染
+            renderCurrentNews();
+            
+            // 每6秒切换到下一条新闻
+            setInterval(() => {
+                currentIndex = (currentIndex + 1) % newsData.length;
+                renderCurrentNews();
+            }, 6000); // 6秒停顿时间
         }
 
         // 更新时间显示
@@ -584,7 +578,7 @@
 
         // 页面加载完成后初始化
         document.addEventListener('DOMContentLoaded', function() {
-            initScrollNews();
+            initSmartScroll();
             updateTime();
             
             // 每秒更新时间
@@ -598,7 +592,7 @@
                 window.location.reload();
             }, 180000);
             
-            console.log('🎯 滚动直播面板已启动');
+            console.log('🎯 智能停顿滚动面板已启动');
         });
 
         // 错误处理
