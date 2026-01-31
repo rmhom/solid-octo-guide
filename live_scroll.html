@@ -1,35 +1,18 @@
-
-// OBS音频捕获兼容性修复
-function fixOBSAudio() {
-    // 强制解除视频静音
-    const videoElement = document.getElementById('natureVideo');
-    if (videoElement) {
-        videoElement.muted = false;
-        videoElement.volume = 1.0;
-        
-        // 尝试播放以激活音频
-        videoElement.play().catch(e => {
-            console.log('视频播放需要用户交互');
-        });
-    }
-    
-    // 通知iframe也解除静音
-    const iframe = document.getElementById('tradingBoard');
-    if (iframe && iframe.contentWindow) {
-        iframe.contentWindow.postMessage({ 
-            action: 'setVolume', 
-            value: 100 
-        }, '*');
-    }
-}
-
-// 在初始化函数中调用
-function init() {
-    // ... 原有代码 ...
-    
-    // 添加OBS音频修复
-    setTimeout(fixOBSAudio, 1000);
-    
-    // 点击页面时也尝试激活音频
-    document.addEventListener('click', fixOBSAudio);
-}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>OBS音频测试</title>
+</head>
+<body style="background: black; color: white;">
+    <h1>OBS音频测试页</h1>
+    <video id="testVideo" autoplay loop controls style="width: 100%;">
+        <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" type="video/mp4">
+    </video>
+    <script>
+        // 强制解除静音
+        document.getElementById('testVideo').muted = false;
+        document.getElementById('testVideo').volume = 1.0;
+    </script>
+</body>
+</html>
